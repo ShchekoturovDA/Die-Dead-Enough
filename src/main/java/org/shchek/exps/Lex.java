@@ -3,7 +3,13 @@ package org.shchek.exps;
 public enum Lex {
     STORE,
     LOAD,
-    INVOKE,
+    LDC,
+    INVOKESTATIC,
+    INVOKEINTERFACE,
+    IFEQ,
+    LOOKUPSWITCH,
+    NEW,
+    CONST,
     DUP,
     GOTO;
 }
