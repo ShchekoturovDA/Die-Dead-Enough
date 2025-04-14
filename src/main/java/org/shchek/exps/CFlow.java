@@ -15,11 +15,12 @@ import java.util.List;
 public class CFlow {
     Variable[] variables;
 
-    public static void add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector){
+    public static Node add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector){
         Node dest = new Node(new ArrayList<>(), new ArrayList<>(), codeSector, orig.getEnd() + 1, orig.getEnd() + 1 + codeSector.size());
         Edge edge = new Edge(orig, dest, cond, exp);
         edge.getDestination().addOut(edge);
         orig.addOut(edge);
+        return dest;
     }
 
     public static void subdivide(Node div, int line){

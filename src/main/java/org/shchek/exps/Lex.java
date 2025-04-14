@@ -1,12 +1,18 @@
 package org.shchek.exps;
 
 public enum Lex {
-    STORE,
-    LOAD,
+    ASTORE,
+    ALOAD,
+    ISTORE,
+    ILOAD,
+    ACONST,
+    ICONST,
     LDC,
     INVOKESTATIC,
+    INVOKESPECIAL,
     INVOKEINTERFACE,
     IFEQ,
+    IFNEQ,
     LOOKUPSWITCH,
     NEW,
     CONST,

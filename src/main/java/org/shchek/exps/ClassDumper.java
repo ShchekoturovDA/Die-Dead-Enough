@@ -27,6 +27,8 @@ import org.apache.bcel.util.BCELifier;
 import javax.imageio.stream.FileImageInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Display Java .class file data. Output is based on javap tool. Built using the BCEL libary.
@@ -243,11 +245,48 @@ final class ClassDumper {
     }
 
     public static void createGraph(String[] code){
+        Node start = new Node();
         for(String cs : code){
             if(cs.isEmpty()){
 
             } else {
+                List<String> lk = Arrays.stream(cs.split("\t| |_")).filter(s -> !s.isEmpty()).toList();
+                switch(lk.get(1)){
+                    case("invokestatic"):
+                        start.getCodeSector().add(new CodeBlock(Lex.INVOKESTATIC, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("invokespecial"):
+                        start.getCodeSector().add(new CodeBlock(Lex.INVOKESPECIAL, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("astore"):
+                        start.getCodeSector().add(new CodeBlock(Lex.ASTORE, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("aload"):
+                        start.getCodeSector().add(new CodeBlock(Lex.ALOAD, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("new"):
+                        start.getCodeSector().add(new CodeBlock(Lex.NEW, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("dup"):
+                        start.getCodeSector().add(new CodeBlock(Lex.DUP, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("ldc"):
+                        start.getCodeSector().add(new CodeBlock(Lex.LDC, lk.get(2)));
+                        start.setEnd(start.getEnd() + 1);
+                        break;
+                    case("ifeq"):
+                        CFlow.add(start, Lex.IFEQ, lk.get(2), null);
+                        start = CFlow.add(start, Lex.IFNEQ, lk.get(2), null);
+                        break;
+                }
 
+                System.out.println(lk);
             }
         }
     }
