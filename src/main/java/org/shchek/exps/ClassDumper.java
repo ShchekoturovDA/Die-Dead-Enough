@@ -260,8 +260,11 @@ final class ClassDumper {
                 }
                 if(!lk.get(0).matches("\\d+")){
                     continue;
+                } else if (Integer.valueOf(lk.get(0)) < start.getStart()) {
+                    break;
                 }
-                if(graph.begs.contains(Integer.valueOf(lk.get(0))) ){
+
+                if(graph.begs.contains(Integer.valueOf(lk.get(0)))  && start.getStart() != Integer.valueOf(lk.get(0))){
                     Node des = graph.searchLine(Integer.valueOf(lk.get(0)));
                     start = CFlow.add(start, des, null, null);
                 }
