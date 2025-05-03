@@ -14,16 +14,29 @@ import java.util.List;
 @NoArgsConstructor
 public class CFlow {
     Variable[] variables;
+    Node start;
+    List<Integer> begs;
 
-    public static Node add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector){
-        Node dest = new Node(new ArrayList<>(), new ArrayList<>(), codeSector, orig.getEnd() + 1, orig.getEnd() + 1 + codeSector.size());
+    public void addBeg(int beg){
+        begs.add(beg);
+    }
+
+    public static Node add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector, int beg){
+        Node dest = new Node(new ArrayList<>(), new ArrayList<>(), codeSector, beg, beg + codeSector.size());
         Edge edge = new Edge(orig, dest, cond, exp);
-        edge.getDestination().addOut(edge);
+        edge.getDestination().addIn(edge);
         orig.addOut(edge);
         return dest;
     }
 
-    public static void subdivide(Node div, int line){
+    public static Node add(Node orig, Node dest, Lex cond, String exp){
+        Edge edge = new Edge(orig, dest, cond, exp);
+        edge.getDestination().addIn(edge);
+        orig.addOut(edge);
+        return dest;
+    }
+
+    public static Node subdivide(Node div, int line){
         List<CodeBlock> past  = div.getCodeSector().subList(line, div.getCodeSector().size());
         div.setCodeSector(div.getCodeSector().subList(0, line - 1));
         Node next = new Node(null, div.getOut(), past, line, div.getEnd());
@@ -33,5 +46,18 @@ public class CFlow {
         edges.add(edge);
         div.setOut(edges);
         next.setIn(edges);
+        return next;
+    }
+
+    public Node searchLine(int num){
+        return start.searchLine(num);
+    }
+
+    public String toString(){
+        return start.toString();
+    }
+
+    public void printGraph(){
+        start.print();
     }
 }
