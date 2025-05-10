@@ -252,7 +252,7 @@ final class ClassDumper {
         CFlow graph = new CFlow(null, start, new ArrayList<Integer>());
         for(String cs : code){
             if(cs.isEmpty()){
-
+                break;
             } else {
                 List<String> lk = Arrays.stream(cs.split("\t| |_|:|#|%")).filter(s -> !s.isEmpty()).toList();
                 if (lk.size() < 3){
@@ -260,46 +260,61 @@ final class ClassDumper {
                 }
                 if(!lk.get(0).matches("\\d+")){
                     continue;
-                } else if (Integer.valueOf(lk.get(0)) < start.getStart()) {
+                }/* else if (Integer.valueOf(lk.get(0)) < start.getStart()) {
                     break;
-                }
+                }*/
 
                 if(graph.begs.contains(Integer.valueOf(lk.get(0)))  && start.getStart() != Integer.valueOf(lk.get(0))){
                     Node des = graph.searchLine(Integer.valueOf(lk.get(0)));
-                    start = CFlow.add(start, des, null, null);
+                    start = CFlow.add(start, des, Lex.GOTO, null);
                 }
                 switch(lk.get(1)){
                     case("invokestatic"):
-                        start.getCodeSector().add(new CodeBlock(Lex.INVOKESTATIC, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.INVOKESTATIC, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("invokespecial"):
-                        start.getCodeSector().add(new CodeBlock(Lex.INVOKESPECIAL, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.INVOKESPECIAL, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("invokeinterface"):
-                        start.getCodeSector().add(new CodeBlock(Lex.INVOKEINTERFACE, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.INVOKEINTERFACE, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("astore"):
-                        start.getCodeSector().add(new CodeBlock(Lex.ASTORE, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.ASTORE, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("aload"):
-                        start.getCodeSector().add(new CodeBlock(Lex.ALOAD, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.ALOAD, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("new"):
-                        start.getCodeSector().add(new CodeBlock(Lex.NEW, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.NEW, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("dup"):
-                        start.getCodeSector().add(new CodeBlock(Lex.DUP, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.DUP, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("ldc"):
-                        start.getCodeSector().add(new CodeBlock(Lex.LDC, lk.get(2)));
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.LDC, lk.get(2)));
                         start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("goto"):
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        Node s1 = graph.searchLine(Integer.valueOf(lk.get(2)));
+                        if(s1 != null){
+                            if(s1.getStart() != Integer.valueOf(lk.get(2))){
+                                s1 = CFlow.subdivide(s1, Integer.valueOf(lk.get(2)));
+                            }
+                            graph.addBeg(s1.getStart());
+                            CFlow.add(start, s1, Lex.GOTO, lk.get(2));
+                        } else {
+                            CFlow.add(start, Lex.GOTO, lk.get(2), new ArrayList<CodeBlock>(), Integer.valueOf(lk.get(2)));
+                            graph.addBeg(Integer.valueOf(lk.get(2)));
+                        }
+                        start = CFlow.add(start, null, null, new ArrayList<CodeBlock>(), start.getEnd() + 3);
                         break;
                     case("ifeq"):
                         start.setEnd(Integer.valueOf(lk.get(0)));

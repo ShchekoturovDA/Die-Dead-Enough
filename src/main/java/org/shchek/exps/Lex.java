@@ -17,5 +17,6 @@ public enum Lex {
     NEW,
     CONST,
     DUP,
-    GOTO;
+    GOTO,
+    RET;
 }

@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CodeBlock {
-    Lex lexem;
-    String arg;
-
+    private int num;
+    private Lex lexem;
+    private String arg;
 }

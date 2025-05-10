@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,11 +21,19 @@ public class Node {
     private int end;
 
     public void addOut(Edge edge){
-        out.add(edge);
+        if(edge.getOrigin() == this){
+            out.add(edge);
+        } else {
+            System.out.println("WTF?");
+        }
     }
 
     public void addIn(Edge edge){
-        in.add(edge);
+        if(edge.getDestination() == this){
+            in.add(edge);
+        } else {
+            System.out.println("WTF?");
+        }
     }
 
     public Node searchLine(int num){
@@ -45,15 +54,18 @@ public class Node {
     public String toString(){
         StringBuilder str = new StringBuilder("[" + start + " - " + end + "] -> ");
         for (Edge e: out){
-            str.append("[" + e.getDestination().start + " - " + e.getDestination().end + "], ");
+            str.append(e.getCondition() + ": [" + e.getDestination().start + " - " + e.getDestination().end + "], ");
         }
         return str.toString();
     }
 
-    public void print(){
+    public void print(List<Integer> check){
         System.out.println(toString());
+        check.add(this.start);
         for (Edge e: out){
-            e.getDestination().print();
+            if(!check.contains(e.getDestination().start)) {
+                e.getDestination().print(check);
+            }
         }
     }
 

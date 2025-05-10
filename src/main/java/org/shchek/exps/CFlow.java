@@ -23,29 +23,43 @@ public class CFlow {
 
     public static Node add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector, int beg){
         Node dest = new Node(new ArrayList<>(), new ArrayList<>(), codeSector, beg, beg + codeSector.size());
-        Edge edge = new Edge(orig, dest, cond, exp);
-        edge.getDestination().addIn(edge);
-        orig.addOut(edge);
+        if (codeSector.size() != 0){
+            dest.setEnd(codeSector.getLast().getNum());
+        }
+        add(orig, dest, cond, exp);
+//        Edge edge = new Edge(orig, dest, cond, exp);
+//        dest.addIn(edge);
+//        orig.addOut(edge);
         return dest;
     }
 
     public static Node add(Node orig, Node dest, Lex cond, String exp){
         Edge edge = new Edge(orig, dest, cond, exp);
-        edge.getDestination().addIn(edge);
+        dest.addIn(edge);
         orig.addOut(edge);
         return dest;
     }
 
     public static Node subdivide(Node div, int line){
-        List<CodeBlock> past  = div.getCodeSector().subList(line, div.getCodeSector().size());
-        div.setCodeSector(div.getCodeSector().subList(0, line - 1));
-        Node next = new Node(null, div.getOut(), past, line, div.getEnd());
+        int var = 0;
+        for(CodeBlock cb : div.getCodeSector()){
+            if(cb.getNum() >= line){
+                break;
+            }
+            var++;
+        }
+        List<CodeBlock> past = div.getCodeSector().subList(var, div.getCodeSector().size());
+        div.setCodeSector(div.getCodeSector().subList(0, var - 1));
+        Node next = new Node(new ArrayList<>(), null, past, line, div.getEnd());
         div.setEnd(line - 1);
-        Edge edge = new Edge(div, next, null, null);
-        List<Edge> edges = new ArrayList<>();
-        edges.add(edge);
-        div.setOut(edges);
-        next.setIn(edges);
+        List<Edge> eNext = new ArrayList<>();
+        for (Edge e: div.getOut()){
+            e.setOrigin(next);
+            eNext.add(e);
+        }
+        next.setOut(eNext);
+        div.setOut(new ArrayList<>());
+        add(div, next, Lex.GOTO, null);
         return next;
     }
 
@@ -58,6 +72,6 @@ public class CFlow {
     }
 
     public void printGraph(){
-        start.print();
+        start.print(new ArrayList<Integer>());
     }
 }
