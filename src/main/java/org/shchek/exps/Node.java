@@ -36,15 +36,18 @@ public class Node {
         }
     }
 
-    public Node searchLine(int num){
+    public Node searchLine(int num, List<Integer> begl){
         if(start <= num && end >= num){
             return this;
         } else {
+            begl.add(start);
             Node ret = null;
             for (Edge e: out){
-                ret = e.getDestination().searchLine(num);
-                if(ret != null){
-                    return ret;
+                if(!begl.contains(e.getDestination().getStart())) {
+                    ret = e.getDestination().searchLine(num, begl);
+                    if (ret != null) {
+                        return ret;
+                    }
                 }
             }
             return ret;
@@ -53,6 +56,9 @@ public class Node {
 
     public String toString(){
         StringBuilder str = new StringBuilder("[" + start + " - " + end + "] -> ");
+        if(!codeSector.isEmpty() && codeSector.getLast().getLexem() == Lex.RET){
+            str.append("OUT");
+        }
         for (Edge e: out){
             str.append(e.getCondition() + ": [" + e.getDestination().start + " - " + e.getDestination().end + "], ");
         }
@@ -60,11 +66,23 @@ public class Node {
     }
 
     public void print(List<Integer> check){
-        System.out.println(toString());
-        check.add(this.start);
+        System.out.println(this);
+        check.add(start);
         for (Edge e: out){
-            if(!check.contains(e.getDestination().start)) {
+            if(!check.contains(e.getDestination().getStart())) {
                 e.getDestination().print(check);
+            }
+        }
+    }
+
+    public void drop(List<Integer> check){
+        check.add(start);
+        for (int i = 0; i < out.size(); i++){
+            if(!check.contains(out.get(i).getDestination().getStart())) {
+                out.get(i).getDestination().drop(check);
+            }
+            if(out.get(i).getCondition() == null){
+                out.remove(i);
             }
         }
     }

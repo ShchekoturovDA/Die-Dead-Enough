@@ -64,7 +64,7 @@ public class CFlow {
     }
 
     public Node searchLine(int num){
-        return start.searchLine(num);
+        return start.searchLine(num, new ArrayList<Integer>());
     }
 
     public String toString(){
@@ -73,5 +73,9 @@ public class CFlow {
 
     public void printGraph(){
         start.print(new ArrayList<Integer>());
+    }
+
+    public void drop(){
+        start.drop(new ArrayList<Integer>());
     }
 }
