@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -15,7 +14,8 @@ import java.util.List;
 public class CFlow {
     Variable[] variables;
     Node start;
-    List<Integer> begs;
+    List<Integer> begs = new ArrayList<Integer>();
+    private Stack<Variable> jStack = new Stack<Variable>();
 
     public void addBeg(int beg){
         begs.add(beg);
@@ -77,5 +77,152 @@ public class CFlow {
 
     public void drop(){
         start.drop(new ArrayList<Integer>());
+    }
+
+    public Variable<Integer> isub(Variable<Integer> var1, Variable<Integer> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Integer.valueOf(v - var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Double> dsub(Variable<Double> var1, Variable<Double> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Double.valueOf(v - var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Integer> iadd(Variable<Integer> var1, Variable<Integer> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Integer.valueOf(v + var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Double> dadd(Variable<Double> var1, Variable<Double> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Double.valueOf(v + var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Integer> imul(Variable<Integer> var1, Variable<Integer> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Integer.valueOf(v * var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Double> dmul(Variable<Double> var1, Variable<Double> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Double.valueOf(v * var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Integer> idiv(Variable<Integer> var1, Variable<Integer> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Integer.valueOf(v / var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+    public Variable<Double> ddiv(Variable<Double> var1, Variable<Double> var2){
+        if(var2.getValues().size() == 1) {
+            var1.getValues().stream().forEach(v -> Double.valueOf(v / var2.getValues().iterator().next()));
+        }
+        return var1;
+    }
+
+
+    public void follow(Node node){
+        for(CodeBlock cb : node.getCodeSector()){
+            switch (cb.getLexem()){
+                case DUP -> {
+                    jStack.push(jStack.peek());
+                }
+                case NEW -> {
+                }
+                case POP -> {
+                    jStack.pop();
+                }
+                case ISUB -> {
+                    jStack.push(isub(jStack.pop(), jStack.pop()));
+                }
+                case DSUB -> {
+                    jStack.push(dsub(jStack.pop(), jStack.pop()));
+                }
+                case IADD -> {
+                    jStack.push(iadd(jStack.pop(), jStack.pop()));
+                }
+                case DADD -> {
+                    jStack.push(dadd(jStack.pop(), jStack.pop()));
+                }
+                case IMUL -> {
+                    jStack.push(imul(jStack.pop(), jStack.pop()));
+                }
+                case DMUL -> {
+                    jStack.push(dmul(jStack.pop(), jStack.pop()));
+                }
+                case IDIV -> {
+                    jStack.push(idiv(jStack.pop(), jStack.pop()));
+                }
+                case DDIV -> {
+                    jStack.push(ddiv(jStack.pop(), jStack.pop()));
+                }
+                case DCONST -> {
+                    Set<Double> cs = new HashSet<>();
+                    cs.add(Double.valueOf(cb.getArg()));
+                    Variable<Double> c = new Variable<>();
+                    c.setValues(cs);
+                    jStack.push(c);
+                }
+                case ACONST -> {
+                    Set<Double> cs = new HashSet<>();
+                    cs.add(null);
+                    Variable<Double> c = new Variable<>();
+                    c.setValues(cs);
+                    jStack.push(c);
+                }
+                case ICONST -> {
+                    Set<Integer> cs = new HashSet<>();
+                    cs.add(Integer.valueOf(cb.getArg()));
+                    Variable<Integer> c = new Variable<>();
+                    c.setValues(cs);
+                    jStack.push(c);
+
+                }
+                case ASTORE -> {
+
+                }
+                case ISTORE -> {
+                    int i = Integer.parseInt(cb.getArg());
+                    Variable var = variables[i];
+                    var.setValues(jStack.pop().getValues());
+                    variables[i] = var;
+                }
+                case DSTORE -> {
+                    int i = Integer.parseInt(cb.getArg());
+                    Variable var = variables[i];
+                    var.setValues(jStack.pop().getValues());
+                    variables[i] = var;
+                }
+                case ALOAD -> {
+                }
+                case ILOAD -> {
+                    jStack.push(variables[Integer.parseInt(cb.getArg())]);
+                }
+                case DLOAD -> {
+                    jStack.push(variables[Integer.parseInt(cb.getArg())]);
+                }
+            }
+        }
+    }
+
+    public void checkVars(){
+        jStack.clear();
+        follow(start);
+        drop();
     }
 }

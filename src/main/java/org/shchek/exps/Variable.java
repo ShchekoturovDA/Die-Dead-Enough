@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Variable<T> {
-    T[] values;
-    String name;
+    private Set<T> values;
+    private boolean isUsed;
+    private String name;
 }

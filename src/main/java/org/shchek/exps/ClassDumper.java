@@ -249,7 +249,8 @@ final class ClassDumper {
         Node start = new Node();
         start.setCodeSector(new ArrayList<CodeBlock>());
         start.setOut(new ArrayList<Edge>());
-        CFlow graph = new CFlow(null, start, new ArrayList<Integer>());
+        CFlow graph = new CFlow();
+        graph.setStart(start);
         for(String cs : code){
             if(cs.isEmpty()){
                 break;
@@ -295,12 +296,56 @@ final class ClassDumper {
                         start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ALOAD, lk.get(2)));
                         start.setEnd(Integer.parseInt(lk.get(0)));
                         break;
+                    case("dstore"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.DSTORE, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
+                    case("dload"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.DLOAD, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
+                    case("aconst"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ACONST, null));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
                     case("iconst"):
-                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.ICONST, lk.get(2)));
-                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ICONST, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
+                    case("dconst"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.DCONST, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
                         break;
                     case("isub"):
                         start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.ISUB, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("dsub"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.DSUB, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("iadd"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.IADD, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("dadd"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.DADD, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("imul"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.IMUL, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("dmul"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.DMUL, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("idiv"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.IDIV, null));
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        break;
+                    case("ddiv"):
+                        start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.DDIV, null));
                         start.setEnd(Integer.valueOf(lk.get(0)));
                         break;
                     case("new"):
