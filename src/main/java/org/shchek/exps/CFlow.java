@@ -293,9 +293,7 @@ public class CFlow {
             if(node.getOut().get(i).getExpression() != null) {
                 Map<Integer, Variable> prev = vars;
                 Stack<Variable> pStack = jStack;
-                follow(node.getOut().get(i).getDestination(), prev, pStack);
-            }
-        }
+                follow(node.getOut().get(i).getDestination(), prev, pStack)
 
     }
 

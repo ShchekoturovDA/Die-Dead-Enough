@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Display Java .class file data. Output is based on javap tool. Built using the BCEL libary.
+ * Отображает команды из .class файла с помощью javap и BCEL.
  */
 final class ClassDumper {
 
@@ -40,20 +40,18 @@ final class ClassDumper {
     private final String fileName;
     private int superclassNameIndex;
     private int major;
-    private int minor; // Compiler version
-    private int accessFlags; // Access rights of parsed class
-    private int[] interfaces; // Names of implemented interfaces
-    private ConstantPool constantPool; // collection of constants
-    private Constant[] constantItems; // collection of constants
-    // private Field[] fields; // class fields, i.e., its variables
-    // private Method[] methods; // methods defined in the class
-    private Attribute[] attributes; // attributes defined in the class
+    private int minor; // Версия компилятора
+    private int accessFlags; // Флаги доступа
+    private int[] interfaces; // Интерфейсы
+    private ConstantPool constantPool; // Константы
+    private Constant[] constantItems; // Константы
+    private Attribute[] attributes; // Атрибуты
 
     /**
-     * Parses class from the given stream.
+     * Читает класс из полученного потока.
      *
-     * @param file Input stream
-     * @param fileName File name
+     * @param file Поток
+     * @param fileName Название файла
      */
     public ClassDumper(final FileImageInputStream file, final String fileName) {
         this.fileName = fileName;
@@ -66,40 +64,38 @@ final class ClassDumper {
     }
 
     /**
-     * Parses the given Java class file and return an object that represents the contained data, i.e., constants, methods,
-     * fields and commands. A <em>ClassFormatException</em> is raised, if the file is not a valid .class file. (This does
-     * not include verification of the byte code as it is performed by the Java interpreter).
+     * Метод обрабатывает class-файл, получает все составляющие, указанные в полях у ClassDumper
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException если есть ошибки ввода вывода.
      * @throws ClassFormatException
      */
     public void dump() throws IOException, ClassFormatException {
         try {
-            // Check magic tag of class file
+            // Проверка магического числа
             processID();
-            // Get compiler version
+            // Версия компилятора
             processVersion();
-            // process constant pool entries
+            // Обработка набора констант
             processConstantPool();
-            // Get class information
+            // Информация о классе
             processClassInfo();
-            // Get interface information, i.e., implemented interfaces
+            // Используемые интерфейсы
             processInterfaces();
-            // process class fields, i.e., the variables of the class
+            // Обработка полей
             processFields();
-            // process class methods, i.e., the functions in the class
+            // Обработка методов
             processMethods();
-            // process class attributes
+            // Обработка атрибутов
             processAttributes();
             System.out.println("End");
         } finally {
-            // Processed everything of interest, so close the file
+            // Закрытие файла
             try {
                 if (file != null) {
                     file.close();
                 }
             } catch (final IOException ioe) {
-                // ignore close exceptions
+                // Закрывающее исключение
             }
         }
     }
@@ -561,7 +557,7 @@ final class ClassDumper {
         graph.printGraph();
         graph.drop();
         graph.printGraph();
-        graph.checkVars();
+//        graph.checkVars();
         graph.printGraph();
     }
 
