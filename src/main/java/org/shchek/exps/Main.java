@@ -21,7 +21,7 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Closed");
         }*/
-        System.out.println(DumpClass.process(path));
+        System.out.println(Dumper.process(path));
 //        Textifier textifier = new Textifier();
 
 //
