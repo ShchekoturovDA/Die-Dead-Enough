@@ -572,14 +572,18 @@ final class ClassDumper {
         graph.printGraph();
         graph.drop();
         graph.printGraph();
+        int before = graph.cyclomation();
+        System.out.println("Cyclomation before: " + before);
         List<Node> dead = graph.checkVars();
         double dSize = 0.0;
         for(Node node : dead){
             dSize = dSize + node.getEnd() - node.getStart();
         }
-        Summary summary = new Summary(methodOrField, dSize / size, dead);
         graph.printGraph();
-        //System.out.println(summary.getResult());
+        int after = graph.cyclomation()
+        System.out.println("Cyclomation after: " + after);
+        Summary summary = new Summary(methodOrField, dSize / size, dead, before, after);
+
         return summary;
     }
 

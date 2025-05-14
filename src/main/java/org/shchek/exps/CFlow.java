@@ -305,4 +305,22 @@ public class CFlow {
         drop();
         return dead;
     }
+
+    public int cyclomation(Node node, List<Integer> check){
+        check.add(node.getStart());
+        int myCyc = -1;
+        for(Edge e: node.getOut()){
+            if(e.getCondition() != Lex.RET) {
+                if (!check.contains(e.getDestination().getStart())) {
+                    myCyc += cyclomation(e.getDestination(), check);
+                }
+                myCyc++;
+            }
+        }
+        return myCyc;
+    }
+
+    public int cyclomation(){
+        return cyclomation(start, new ArrayList<>()) + 2;
+    }
 }

@@ -13,9 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Summary {
-    String methodOrField;//Название метода
-    Double result; //Процент мёртвого кода
-    List<Node> deadNodes; //Участки мёртвого кода
+    private String methodOrField;//Название метода
+    private Double result; //Процент мёртвого кода
+    private List<Node> deadNodes; //Участки мёртвого кода
+    private int before; //Цикломатическая сложность до упрощения
+    private int after; //Цикломатическая сложность после упрощения
 
     public String toString(){
         StringBuilder builder =new StringBuilder();
