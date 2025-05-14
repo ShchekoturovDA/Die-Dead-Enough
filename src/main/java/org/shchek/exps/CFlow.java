@@ -21,6 +21,15 @@ public class CFlow {
         begs.add(beg);
     }
 
+    /**
+     * Метод для добавления к графу новой вершины
+     * @param orig вершина из которой проводится ребро
+     * @param cond условие
+     * @param exp аргумент
+     * @param codeSector список инструкций, помещаемых в новую вершину
+     * @param beg номер начальной строки
+     * @return новая вершина
+     */
     public static Node add(Node orig, Lex cond, String exp, List<CodeBlock> codeSector, int beg){
         Node dest = new Node(new ArrayList<>(), new ArrayList<>(), codeSector, beg, beg + codeSector.size());
         if (codeSector.size() != 0){
@@ -33,6 +42,14 @@ public class CFlow {
         return dest;
     }
 
+    /**
+     * Метод для добавления к графу новой вершины
+     * @param orig вершина из которой проводится ребро
+     * @param dest вершина в которую проводится ребро
+     * @param cond условие
+     * @param exp аргумент
+     * @return новая вершина
+     */
     public static Node add(Node orig, Node dest, Lex cond, String exp){
         Edge edge = new Edge(orig, dest, cond, exp);
         dest.addIn(edge);
@@ -40,6 +57,12 @@ public class CFlow {
         return dest;
     }
 
+    /**
+     * Метод для подразделения вершины в определённом месте
+     * @param div разделяемая вершина
+     * @param line номер строки, по которой проводится разделение
+     * @return новая вершина
+     */
     public static Node subdivide(Node div, int line){
         int var = 0;
         for(CodeBlock cb : div.getCodeSector()){
@@ -63,6 +86,7 @@ public class CFlow {
         return next;
     }
 
+    //Методы аналогичные методам в классе Node, вызываются для начальной вершины графа
     public Node searchLine(int num){
         return start.searchLine(num, new ArrayList<Integer>());
     }
@@ -218,6 +242,7 @@ public class CFlow {
                 }
             }
         }
+
     }
 
     public void checkVars(){

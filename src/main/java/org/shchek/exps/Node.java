@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -36,7 +35,12 @@ public class Node {
         }
     }
 
-    public Node searchLine(int num, List<Integer> begl){
+    /**
+     * Метод для поиска вершины содержащую строку с номером
+     * @param num номер
+     * @param begl массив номеров первых строк обработанных вершин
+     */
+     public Node searchLine(int num, List<Integer> begl){
         if(start <= num && end >= num){
             return this;
         } else {
@@ -65,21 +69,29 @@ public class Node {
         return str.toString();
     }
 
-    public void print(List<Integer> check){
+    /**
+     * Метод для рекурсивного вывода всего графа по каждой его вершине
+     * @param begl массив номеров первых строк обработанных вершин
+     */
+    public void print(List<Integer> begl){
         System.out.println(this);
-        check.add(start);
+        begl.add(start);
         for (Edge e: out){
-            if(!check.contains(e.getDestination().getStart())) {
-                e.getDestination().print(check);
+            if(!begl.contains(e.getDestination().getStart())) {
+                e.getDestination().print(begl);
             }
         }
     }
 
-    public void drop(List<Integer> check){
-        check.add(start);
+    /**
+     * Метод для удаления рёбер, по которым переход заведомо невозможен
+     * @param begl массив номеров первых строк обработанных вершин
+     */
+    public void drop(List<Integer> begl){
+        begl.add(start);
         for (int i = 0; i < out.size(); i++){
-            if(!check.contains(out.get(i).getDestination().getStart())) {
-                out.get(i).getDestination().drop(check);
+            if(!begl.contains(out.get(i).getDestination().getStart())) {
+                out.get(i).getDestination().drop(begl);
             }
             if(out.get(i).getCondition() == null){
                 out.remove(i);
