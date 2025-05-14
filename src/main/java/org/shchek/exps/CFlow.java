@@ -12,10 +12,10 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CFlow {
-    Variable[] variables;
+    Map<Integer, Variable> variables = new HashMap<>();
     Node start;
     List<Integer> begs = new ArrayList<Integer>();
-    private Stack<Variable> jStack = new Stack<Variable>();
+    private Stack<Variable> jStack2 = new Stack<Variable>();
 
     public void addBeg(int beg){
         begs.add(beg);
@@ -160,7 +160,7 @@ public class CFlow {
     }
 
 
-    public void follow(Node node){
+    public void follow(Node node, Map<Integer, Variable> vars, Stack<Variable>jStack){
         for(CodeBlock cb : node.getCodeSector()){
             switch (cb.getLexem()){
                 case DUP -> {
@@ -209,7 +209,7 @@ public class CFlow {
                     c.setValues(cs);
                     jStack.push(c);
                 }
-                case ICONST -> {
+                case ICONST, BIPUSH -> {
                     Set<Integer> cs = new HashSet<>();
                     cs.add(Integer.valueOf(cb.getArg()));
                     Variable<Integer> c = new Variable<>();
@@ -222,32 +222,86 @@ public class CFlow {
                 }
                 case ISTORE -> {
                     int i = Integer.parseInt(cb.getArg());
-                    Variable var = variables[i];
+                    Variable var = null;
+                    if(vars.keySet().contains(i)) {
+                        var = vars.get(i);
+                    }else{
+                        vars.put(i, new Variable(new HashSet<Integer>(), false, null));
+                        var = vars.get(i);
+                    }
                     var.setValues(jStack.pop().getValues());
-                    variables[i] = var;
+                    vars.put(i, var);
                 }
                 case DSTORE -> {
                     int i = Integer.parseInt(cb.getArg());
-                    Variable var = variables[i];
+                    Variable var = vars.get(i);
                     var.setValues(jStack.pop().getValues());
-                    variables[i] = var;
+                    vars.remove(i);
+                    vars.put(i, var);
                 }
                 case ALOAD -> {
                 }
                 case ILOAD -> {
-                    jStack.push(variables[Integer.parseInt(cb.getArg())]);
+                    jStack.push(vars.get(Integer.parseInt(cb.getArg())));
                 }
                 case DLOAD -> {
-                    jStack.push(variables[Integer.parseInt(cb.getArg())]);
+                    jStack.push(vars.get(Integer.parseInt(cb.getArg())));
                 }
+            }
+        }
+        Variable v1 = null;
+        for(Edge e: node.getOut()){
+            if(e.getCondition() != Lex.RET && e.getCondition() != Lex.GOTO && e.getCondition() != null){
+                v1 = jStack.pop();
+                break;
+            }
+        }
+
+        for(int i = 0; i < node.getOut().size(); i++){
+            if(node.getOut().get(i).getCondition() == Lex.RET){
+                continue;
+            }
+            if(node.getOut().get(i).getExpression() != null && node.getOut().get(i).getCondition() != Lex.GOTO) {
+                switch (node.getOut().get(i).getCondition()) {
+                    case IFEQ -> {
+                        if(!v1.getValues().contains(0)){
+                            node.nulEdge(i);
+                        }
+                    }
+                    case IFGE -> {
+                        if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) >= 0).toArray().length == 0){
+                            node.nulEdge(i);
+                        }
+                    }
+                    case IFLE -> {
+                        if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) <= 0).toArray().length == 0){
+                            node.nulEdge(i);
+                        }
+                    }
+                    case IFLT -> {
+                        if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) < 0).toArray().length == 0){
+                            node.nulEdge(i);
+                        }
+                    }
+                    case IFGT -> {
+                        if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) > 0).toArray().length == 0){
+                            node.nulEdge(i);
+                        }
+                    }
+                }
+            }
+            if(node.getOut().get(i).getExpression() != null) {
+                Map<Integer, Variable> prev = vars;
+                Stack<Variable> pStack = jStack;
+                follow(node.getOut().get(i).getDestination(), prev, pStack);
             }
         }
 
     }
 
     public void checkVars(){
-        jStack.clear();
-        follow(start);
+        jStack2.clear();
+        follow(start, new HashMap<>(), new Stack<Variable>());
         drop();
     }
 }

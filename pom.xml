@@ -24,7 +24,16 @@
             <artifactId>bcel</artifactId>
             <version>6.10.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>9.7</version>
+        </dependency>
     </dependencies>
 
 

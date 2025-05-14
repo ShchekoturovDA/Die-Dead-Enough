@@ -60,11 +60,13 @@ public class Node {
 
     public String toString(){
         StringBuilder str = new StringBuilder("[" + start + " - " + end + "] -> ");
-        if(!codeSector.isEmpty() && codeSector.getLast().getLexem() == Lex.RET){
-            str.append("OUT");
-        }
+
         for (Edge e: out){
-            str.append(e.getCondition() + ": [" + e.getDestination().start + " - " + e.getDestination().end + "], ");
+            if(e.getCondition() == Lex.RET){
+                str.append(" OUT ");
+            } else {
+                str.append(e.getCondition() + ": [" + e.getDestination().start + " - " + e.getDestination().end + "], ");
+            }
         }
         return str.toString();
     }
@@ -77,7 +79,7 @@ public class Node {
         System.out.println(this);
         begl.add(start);
         for (Edge e: out){
-            if(!begl.contains(e.getDestination().getStart())) {
+            if(!(e.getCondition() == Lex.RET) && !begl.contains(e.getDestination().getStart())) {
                 e.getDestination().print(begl);
             }
         }
@@ -99,4 +101,10 @@ public class Node {
         }
     }
 
+    public void nulEdge(int i) {
+        Edge e = out.get(i);
+        e.setCondition(null);
+        out.remove(i);
+        out.add(i, e);
+    }
 }

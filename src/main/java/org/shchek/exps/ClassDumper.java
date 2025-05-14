@@ -300,8 +300,16 @@ final class ClassDumper {
                         start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.DSTORE, lk.get(2)));
                         start.setEnd(Integer.parseInt(lk.get(0)));
                         break;
+                    case("istore"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ISTORE, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
                     case("dload"):
                         start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.DLOAD, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
+                    case("iload"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ILOAD, lk.get(2)));
                         start.setEnd(Integer.parseInt(lk.get(0)));
                         break;
                     case("aconst"):
@@ -310,6 +318,10 @@ final class ClassDumper {
                         break;
                     case("iconst"):
                         start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.ICONST, lk.get(2)));
+                        start.setEnd(Integer.parseInt(lk.get(0)));
+                        break;
+                    case("bipush"):
+                        start.getCodeSector().add(new CodeBlock(Integer.parseInt(lk.get(0)), Lex.BIPUSH, lk.get(2)));
                         start.setEnd(Integer.parseInt(lk.get(0)));
                         break;
                     case("dconst"):
@@ -524,8 +536,23 @@ final class ClassDumper {
                         }
                         break;
                     case("return"):
+
+                        start.setEnd(Integer.valueOf(lk.get(0)));
+                        CFlow.add(start, new Node(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, 0), Lex.RET, null);
+                        s1 = graph.searchLine(start.getEnd() + 3);
+                        if(s1 != null){
+                            start = s1;
+                        } else {
+                            start = CFlow.add(start, null, null, new ArrayList<CodeBlock>(), start.getEnd() + 3);
+                            graph.addBeg(start.getStart());
+                        }
+
+                        break;
+
+                    case("dreturn"):
                         start.getCodeSector().add(new CodeBlock(Integer.valueOf(lk.get(0)), Lex.RET, null));
                         start.setEnd(Integer.valueOf(lk.get(0)));
+
                 }
 
 
@@ -533,6 +560,8 @@ final class ClassDumper {
         }
         graph.printGraph();
         graph.drop();
+        graph.printGraph();
+        graph.checkVars();
         graph.printGraph();
     }
 

@@ -10,6 +10,7 @@ public enum Lex {
     ACONST,
     ICONST,
     DCONST,
+    BIPUSH,
     ISUB,
     DSUB,
     IADD,
