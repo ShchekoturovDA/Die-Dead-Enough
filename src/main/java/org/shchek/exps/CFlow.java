@@ -16,6 +16,7 @@ public class CFlow {
     Node start;
     List<Integer> begs = new ArrayList<Integer>();
     private Stack<Variable> jStack2 = new Stack<Variable>();
+    List<Node> dead = new ArrayList<>();
 
     public void addBeg(int beg){
         begs.add(beg);
@@ -160,7 +161,7 @@ public class CFlow {
     }
 
 
-    public void follow(Node node, Map<Integer, Variable> vars, Stack<Variable>jStack){
+    public void follow(Node node, Map<Integer, Variable> vars, Stack<Variable>jStack, List<Node> dead){
         for(CodeBlock cb : node.getCodeSector()){
             switch (cb.getLexem()){
                 case DUP -> {
@@ -265,27 +266,27 @@ public class CFlow {
                 switch (node.getOut().get(i).getCondition()) {
                     case IFEQ -> {
                         if(!v1.getValues().contains(0)){
-                            node.nulEdge(i);
+                            node.nulEdge(i, dead);
                         }
                     }
                     case IFGE -> {
                         if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) >= 0).toArray().length == 0){
-                            node.nulEdge(i);
+                            node.nulEdge(i, dead);
                         }
                     }
                     case IFLE -> {
                         if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) <= 0).toArray().length == 0){
-                            node.nulEdge(i);
+                            node.nulEdge(i, dead);
                         }
                     }
                     case IFLT -> {
                         if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) < 0).toArray().length == 0){
-                            node.nulEdge(i);
+                            node.nulEdge(i, dead);
                         }
                     }
                     case IFGT -> {
                         if(v1.getValues().stream().filter(k -> Integer.valueOf(k.toString()) > 0).toArray().length == 0){
-                            node.nulEdge(i);
+                            node.nulEdge(i, dead);
                         }
                     }
                 }
@@ -293,13 +294,15 @@ public class CFlow {
             if(node.getOut().get(i).getExpression() != null) {
                 Map<Integer, Variable> prev = vars;
                 Stack<Variable> pStack = jStack;
-                follow(node.getOut().get(i).getDestination(), prev, pStack)
-
+                follow(node.getOut().get(i).getDestination(), prev, pStack, dead);
+            }
+        }
     }
 
-    public void checkVars(){
+    public List<Node> checkVars(){
         jStack2.clear();
-        follow(start, new HashMap<>(), new Stack<Variable>());
+        follow(start, new HashMap<>(), new Stack<Variable>(), dead);
         drop();
+        return dead;
     }
 }

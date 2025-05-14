@@ -101,9 +101,12 @@ public class Node {
         }
     }
 
-    public void nulEdge(int i) {
+    public void nulEdge(int i, List<Node> dead) {
         Edge e = out.get(i);
         e.setCondition(null);
+        if(e.getDestination().getIn().stream().filter(es -> es.getCondition() != null).toList().isEmpty()){
+            dead.add(e.getDestination());
+        };
         out.remove(i);
         out.add(i, e);
     }

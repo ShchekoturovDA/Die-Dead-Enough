@@ -26,7 +26,13 @@ import org.apache.bcel.util.BCELifier;
 
 import javax.imageio.stream.FileImageInputStream;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,10 +72,12 @@ final class ClassDumper {
     /**
      * Метод обрабатывает class-файл, получает все составляющие, указанные в полях у ClassDumper
      *
-     * @throws IOException если есть ошибки ввода вывода.
+     * @return
+     * @throws IOException          если есть ошибки ввода вывода.
      * @throws ClassFormatException
      */
-    public void dump() throws IOException, ClassFormatException {
+    public List<Summary> dump() throws IOException, ClassFormatException {
+        List<Summary> summaries = new ArrayList<>();
         try {
             // Проверка магического числа
             processID();
@@ -84,10 +92,11 @@ final class ClassDumper {
             // Обработка полей
             processFields();
             // Обработка методов
-            processMethods();
+            summaries = (processMethods());
             // Обработка атрибутов
             processAttributes();
             System.out.println("End");
+            return null;
         } finally {
             // Закрытие файла
             try {
@@ -97,6 +106,7 @@ final class ClassDumper {
             } catch (final IOException ioe) {
                 // Закрывающее исключение
             }
+            return summaries;
         }
     }
 
@@ -193,10 +203,11 @@ final class ClassDumper {
      * Constructs object from file stream.
      *
      * @param file Input stream
-     * @throws IOException if an I/O error occurs.
+     * @return
+     * @throws IOException          if an I/O error occurs.
      * @throws ClassFormatException
      */
-    private void processFieldOrMethod() throws IOException, ClassFormatException {
+    private List<Summary> processFieldOrMethod() throws IOException, ClassFormatException {
         final int accessFlags = file.readUnsignedShort();
         final int nameIndex = file.readUnsignedShort();
         System.out.printf("  nameIndex: %d (", nameIndex);
@@ -209,7 +220,7 @@ final class ClassDumper {
         final int attributesCount = file.readUnsignedShort();
         final Attribute[] attributes = new Attribute[attributesCount];
         System.out.println("  attribute count: " + attributesCount);
-
+        List<Summary> summaries = new ArrayList<>();
         for (int i = 0; i < attributesCount; i++) {
             // going to peek ahead a bit
             file.mark();
@@ -230,7 +241,8 @@ final class ClassDumper {
             final long pos1 = file.getStreamPosition();
             attributes[i] = Attribute.readAttribute(file, constantPool);
             String[] codeLines = attributes[i].toString().split("\n");
-            createGraph(codeLines);
+            Summary summary = createGraph(codeLines, constantToString(nameIndex));
+            summaries.add(summary);
             final long pos2 = file.getStreamPosition();
             if (pos2 - pos1 != attributeLength + 6) {
                 System.out.printf("%nattributeLength: %d pos2-pos1-6: %d pos1: %x(%d) pos2: %x(%d)%n", attributeLength, pos2 - pos1 - 6, pos1, pos1, pos2,
@@ -238,10 +250,12 @@ final class ClassDumper {
             }
             System.out.printf("  ");
             System.out.println(attributes[i]);
+
         }
+        return summaries;
     }
 
-    public static void createGraph(String[] code){
+    public static Summary createGraph(String[] code, String methodOrField){
         Node start = new Node();
         start.setCodeSector(new ArrayList<CodeBlock>());
         start.setOut(new ArrayList<Edge>());
@@ -554,11 +568,19 @@ final class ClassDumper {
 
             }
         }
+        double size = start.getEnd();
         graph.printGraph();
         graph.drop();
         graph.printGraph();
-//        graph.checkVars();
+        List<Node> dead = graph.checkVars();
+        double dSize = 0.0;
+        for(Node node : dead){
+            dSize = dSize + node.getEnd() - node.getStart();
+        }
+        Summary summary = new Summary(methodOrField, dSize / size, dead);
         graph.printGraph();
+        //System.out.println(summary.getResult());
+        return summary;
     }
 
     /**
@@ -628,21 +650,25 @@ final class ClassDumper {
     /**
      * Processes information about the methods of the class.
      *
-     * @throws IOException if an I/O error occurs.
+     * @return
+     * @throws IOException          if an I/O error occurs.
      * @throws ClassFormatException
      */
-    private void processMethods() throws IOException, ClassFormatException {
+    private List<Summary> processMethods() throws IOException, ClassFormatException {
         final int methodsCount = file.readUnsignedShort();
         // methods = new Method[methodsCount];
 
         System.out.printf("%nMethods(%d):%n", methodsCount);
-
+        List<Summary> summaries = new ArrayList<>();
         for (int i = 0; i < methodsCount; i++) {
-            processFieldOrMethod();
+            List<Summary> newSummaries = processFieldOrMethod();
+            summaries.addAll(newSummaries);
             if (i < methodsCount - 1) {
                 System.out.println();
             }
+            //return summary;
         }
+        return summaries;
     }
 
     /**
@@ -662,6 +688,51 @@ final class ClassDumper {
 }
 
 final class DumpClass {
+
+    public static List<Summary> process(String path){
+        List<Path> procFiles = new ArrayList<>();
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Path.of(path)))
+        {
+            for (Path entry : stream) {
+                if (Files.isDirectory(entry)) {
+                    process(entry, procFiles);
+                } else if(entry.toString().endsWith(".class")) {
+                    procFiles.add(entry);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        List<Summary> summaries = new ArrayList<>();
+        for(Path path1 : procFiles){
+            try (FileImageInputStream file = new FileImageInputStream(new File(String.valueOf(path1)))) {
+
+                final ClassDumper cd = new ClassDumper(file, String.valueOf(path1));
+                List<Summary> sums = cd.dump();
+                summaries.addAll(sums);
+            } catch (IOException e) {
+                //throw new RuntimeException(e);
+            }
+        }
+        return summaries;
+    }
+
+    public static List<Path> process(Path path, List<Path> procFiles){
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path))
+        {
+            for (Path entry : stream) {
+                if (Files.isDirectory(entry)) {
+                    process(entry, procFiles);
+                } else if(entry.endsWith(".class")) {
+                    procFiles.add(entry);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return procFiles;
+    }
 
     public static void main(final String[] args) throws IOException {
 
