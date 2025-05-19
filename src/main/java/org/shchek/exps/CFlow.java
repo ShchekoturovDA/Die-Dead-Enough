@@ -12,11 +12,13 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CFlow {
-    Map<Integer, Variable> variables = new HashMap<>();
-    Node start;
-    List<Integer> begs = new ArrayList<Integer>();
+    private Map<Integer, Variable> variables = new HashMap<>();
+    private Map<String, Integer> modules = new HashMap<>();
+    private Node start;
+    private List<Integer> begs = new ArrayList<Integer>();
     private Stack<Variable> jStack2 = new Stack<Variable>();
-    List<Node> dead = new ArrayList<>();
+    private List<Node> dead = new ArrayList<>();
+    private List<String> className;
 
     public void addBeg(int beg){
         begs.add(beg);
@@ -322,5 +324,45 @@ public class CFlow {
 
     public int cyclomation(){
         return cyclomation(start, new ArrayList<>()) + 2;
+    }
+
+    public void cohesionCollect(Node node, List<Integer> check){
+        check.add(node.getStart());
+        for (CodeBlock cb : node.getCodeSector()){
+            if(cb.getLexem() == Lex.INVOKEINTERFACE || cb.getLexem() == Lex.INVOKESPECIAL ||
+                    cb.getLexem() == Lex.INVOKEVIRTUAL || cb.getLexem() == Lex.INVOKESTATIC){
+                List<String> modNames = List.of(cb.getArg().split("."));
+                modNames.removeLast();
+                modNames.removeLast();
+                if(modNames.getFirst().equals(className.getFirst()) && !modNames.getLast().equals(className.get(className.size() - 2))){
+                    String curMod = String.join(".", modNames);
+                    if(modules.get(curMod) == null){
+                        modules.put(curMod, 1);
+                    } else {
+                        modules.merge(curMod, 1, Integer::sum);
+                    }
+
+                }
+            }
+        }
+        for(Edge e: node.getOut()){
+            if(e.getCondition() != Lex.RET && !check.contains(e.getDestination().getStart())) {
+                cohesionCollect(e.getDestination(), new ArrayList<>());
+            }
+        }
+
+    }
+
+    public void cohesionCollect(){
+        cohesionCollect(start, new ArrayList<>());
+    }
+
+    public List<Module> cohesionCalculate(){
+        List<Module> moduleList = new ArrayList<>();
+        double sum = modules.values().stream().reduce(0, Integer::sum);
+        for(String name : modules.keySet()){
+            moduleList.add(new Module(name, modules.get(name)/sum));
+        }
+        return moduleList;
     }
 }

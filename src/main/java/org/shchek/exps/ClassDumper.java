@@ -26,11 +26,8 @@ import org.apache.bcel.util.BCELifier;
 
 import javax.imageio.stream.FileImageInputStream;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -52,6 +49,7 @@ final class ClassDumper {
     private ConstantPool constantPool; // Константы
     private Constant[] constantItems; // Константы
     private Attribute[] attributes; // Атрибуты
+    private String className;
 
     /**
      * Читает класс из полученного потока.
@@ -155,6 +153,7 @@ final class ClassDumper {
         int classNameIndex = file.readUnsignedShort();
         System.out.printf("  this_class: %d (", classNameIndex);
         System.out.println(constantToString(classNameIndex) + ")");
+        className = constantToString(classNameIndex);
 
         superclassNameIndex = file.readUnsignedShort();
         System.out.printf("  super_class: %d (", superclassNameIndex);
@@ -162,6 +161,7 @@ final class ClassDumper {
             System.out.printf("%s", constantToString(superclassNameIndex));
         }
         System.out.println(")");
+
     }
 
     /**
@@ -241,7 +241,7 @@ final class ClassDumper {
             final long pos1 = file.getStreamPosition();
             attributes[i] = Attribute.readAttribute(file, constantPool);
             String[] codeLines = attributes[i].toString().split("\n");
-            Summary summary = createGraph(codeLines, constantToString(nameIndex));
+            Summary summary = createGraph(codeLines, constantToString(nameIndex), className);
             summaries.add(summary);
             final long pos2 = file.getStreamPosition();
             if (pos2 - pos1 != attributeLength + 6) {
@@ -255,12 +255,13 @@ final class ClassDumper {
         return summaries;
     }
 
-    public static Summary createGraph(String[] code, String methodOrField){
+    public static Summary createGraph(String[] code, String methodOrField, String className){
         Node start = new Node();
         start.setCodeSector(new ArrayList<CodeBlock>());
         start.setOut(new ArrayList<Edge>());
         CFlow graph = new CFlow();
         graph.setStart(start);
+        graph.setClassName(List.of(className.split(".")));
         for(String cs : code){
             if(cs.isEmpty()){
                 break;
@@ -276,7 +277,7 @@ final class ClassDumper {
                     break;
                 }*/
 
-                if(graph.begs.contains(Integer.valueOf(lk.get(0)))  && start.getStart() != Integer.parseInt(lk.get(0))){
+                if(graph.getBegs().contains(Integer.valueOf(lk.get(0)))  && start.getStart() != Integer.parseInt(lk.get(0))){
                     Node des = graph.searchLine(Integer.parseInt(lk.get(0)));
                     graph.printGraph();
                     start = CFlow.add(start, des, Lex.GOTO, "dum");
@@ -580,9 +581,11 @@ final class ClassDumper {
             dSize = dSize + node.getEnd() - node.getStart();
         }
         graph.printGraph();
-        int after = graph.cyclomation()
+        int after = graph.cyclomation();
         System.out.println("Cyclomation after: " + after);
-        Summary summary = new Summary(methodOrField, dSize / size, dead, before, after);
+        graph.cohesionCollect();
+        List<Module> modules = graph.cohesionCalculate();
+        Summary summary = new Summary(methodOrField, dSize / size, dead, before, after, modules);
 
         return summary;
     }

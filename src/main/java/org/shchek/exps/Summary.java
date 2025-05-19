@@ -18,6 +18,7 @@ public class Summary {
     private List<Node> deadNodes; //Участки мёртвого кода
     private int before; //Цикломатическая сложность до упрощения
     private int after; //Цикломатическая сложность после упрощения
+    private List<Module> modules; //Используемые модули
 
     public String toString(){
         StringBuilder builder =new StringBuilder();
