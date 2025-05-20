@@ -90,7 +90,7 @@ final class ClassDumper {
             // Обработка полей
             processFields();
             // Обработка методов
-            summaries = (processMethods());
+            summaries = processMethods();
             // Обработка атрибутов
             processAttributes();
             System.out.println("End");
@@ -261,7 +261,7 @@ final class ClassDumper {
         start.setOut(new ArrayList<Edge>());
         CFlow graph = new CFlow();
         graph.setStart(start);
-        graph.setClassName(List.of(className.split(".")));
+        graph.setClassName(List.of(className.split("\\.")));
         for(String cs : code){
             if(cs.isEmpty()){
                 break;
@@ -279,7 +279,7 @@ final class ClassDumper {
 
                 if(graph.getBegs().contains(Integer.valueOf(lk.get(0)))  && start.getStart() != Integer.parseInt(lk.get(0))){
                     Node des = graph.searchLine(Integer.parseInt(lk.get(0)));
-                    graph.printGraph();
+//                    graph.printGraph();
                     start = CFlow.add(start, des, Lex.GOTO, "dum");
                 }
                 switch(lk.get(1)){
@@ -584,7 +584,7 @@ final class ClassDumper {
         int after = graph.cyclomation();
         System.out.println("Cyclomation after: " + after);
         graph.cohesionCollect();
-        List<Module> modules = graph.cohesionCalculate();
+        List<Module> modules = new ArrayList<>();//graph.cohesionCalculate();
         Summary summary = new Summary(methodOrField, dSize / size, dead, before, after, modules);
 
         return summary;

@@ -35,6 +35,11 @@ public class Summary {
                 builder.append("\n");
             }
         }
+        builder.append("Cyclomation before: " + before + ", after: " + after + "\n");
+        builder.append("Using modules:\n");
+        for(Module module : modules){
+            builder.append(module.getName() + " : " + module.getUsage());
+        }
         return builder.toString();
     }
 }

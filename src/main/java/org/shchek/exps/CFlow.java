@@ -331,11 +331,12 @@ public class CFlow {
         for (CodeBlock cb : node.getCodeSector()){
             if(cb.getLexem() == Lex.INVOKEINTERFACE || cb.getLexem() == Lex.INVOKESPECIAL ||
                     cb.getLexem() == Lex.INVOKEVIRTUAL || cb.getLexem() == Lex.INVOKESTATIC){
-                List<String> modNames = List.of(cb.getArg().split("."));
-                modNames.removeLast();
-                modNames.removeLast();
+                List<String> modNames = Arrays.stream(cb.getArg().split("\\.")).toList();
+                if(modNames.size() > 2){
+                    modNames = modNames.subList(0, modNames.size() - 2);
+                }
                 if(modNames.getFirst().equals(className.getFirst()) && !modNames.getLast().equals(className.get(className.size() - 2))){
-                    String curMod = String.join(".", modNames);
+                    String curMod = String.join("\\.", modNames);
                     if(modules.get(curMod) == null){
                         modules.put(curMod, 1);
                     } else {
