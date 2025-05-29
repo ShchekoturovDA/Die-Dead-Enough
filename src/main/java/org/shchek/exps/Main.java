@@ -10,22 +10,7 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        /*String path = "C:\\SCAS\\build\\agent-1.0-SNAPSHOT\\BOOT-INF\\" +
-                "classes\\org\\github\\babkiniaa\\scas\\parsers\\PmdParser.class";*/
-        String path = "C:\\Users\\Дмитрий\\Downloads\\progs";
-//        String[] path = new String[1];
-//        path[0] = "C:\\Users\\Дмитрий\\Downloads\\progs\\Task5K.class";
-        /*try (FileImageInputStream file = new FileImageInputStream(new File(path))) {
-            final ClassDumper cd = new ClassDumper(file, path);
-            cd.dump();
-        } catch (IOException e) {
-            System.out.println("Closed");
-        }*/
-        System.out.println(Dumper.process(path));
-//        Textifier textifier = new Textifier();
 
-//
-//        Textifier.main(path);
 
     }
 }

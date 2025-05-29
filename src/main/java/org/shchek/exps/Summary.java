@@ -28,11 +28,7 @@ public class Summary {
             i++;
             builder.append("Segment " + i + ":\n");
             for(CodeBlock cb : node.getCodeSector()){
-                builder.append(cb.getNum() + ": " + cb.getLexem() + " ");
-                if(cb.getArg() != null){
-                    builder.append(cb.getArg());
-                }
-                builder.append("\n");
+                builder.append(cb);
             }
         }
         builder.append("Cyclomation before: " + before + ", after: " + after + "\n");
